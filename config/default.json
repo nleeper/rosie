@@ -1,0 +1,14 @@
+{
+  "PORT": 5000,
+  "SPOTIFY": {
+    "KEY": "",
+    "SECRET": ""
+  },
+  "PIPELINE": {
+    "URL": "ws://localhost:8888/ws/pipeline"
+  },
+  "SONOS": {
+    "TIMEOUT": 3000,
+    "EXCLUDED_SPEAKERS": [ "BRIDGE" ]
+  }
+}

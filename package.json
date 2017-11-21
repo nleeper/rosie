@@ -1,0 +1,45 @@
+{
+  "name": "rosie",
+  "version": "0.1.0",
+  "description": "Home automation assistant",
+  "author": "Nick Leeper",
+  "license": "ISC",
+  "homepage": "https://github.com/nleeper/rosie#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nleeper/rosie.git"
+  },
+  "keywords": [
+    "home",
+    "automation",
+    "assistant"
+  ],
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "npm run test:unit | faucet",
+    "test:unit": "tape 'test/unit/**/*.test.js'",
+    "pretest": "standard"
+  },
+  "dependencies": {
+    "blipp": "^2.3.0",
+    "bluebird": "^3.5.0",
+    "glob": "^7.1.1",
+    "glue": "^4.1.0",
+    "hapi": "^16.6.2",
+    "rc": "^1.2.1",
+    "sonos": "^0.17.0",
+    "spotify-finder": "^2.1.1",
+    "underscore": "^1.8.3",
+    "uuid4": "^1.0.0",
+    "winston": "^2.3.1",
+    "ws": "^2.3.1"
+  },
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "pre-commit": "^1.2.2",
+    "sinon": "^2.1.0",
+    "standard": "^10.0.2",
+    "tape": "^4.6.3",
+    "tapes": "^4.1.0"
+  }
+}
