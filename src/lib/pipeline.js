@@ -34,13 +34,9 @@ class Pipeline {
           this._connected = true
           break
         case 'sonos.speakers':
-          Sonos.getSpeakers().then(speakers => this._sendResponse(parsedMessage.id, { success: true, speakers }))
-          break
-        case 'sonos.play':
-          let speakerId = parsedMessage.params['speakerId']
-          // TODO - handle exception and return error response
-          Sonos.play(speakerId)
-            .then(playing => this._sendResponse(parsedMessage.id, { success: playing }))
+          Sonos.getSpeakers()
+            .then(speakers => this._sendResponse(parsedMessage.id, { success: true, speakers }))
+            .catch(err => this._sendError(parsedMessage.id, err.message))
           break
         case 'sonos.play_artist':
           let artist = parsedMessage.params['artist']
@@ -51,6 +47,7 @@ class Pipeline {
               return Sonos.playArtist(speaker.id, artist)
                 .then(playing => this._sendResponse(parsedMessage.id, { success: playing }))
             })
+            .catch(err => this._sendError(parsedMessage.id, err.message))
           break
       }
     }
@@ -66,6 +63,10 @@ class Pipeline {
 
   _sendResponse (id, result) {
     this._websocket.send(JSON.stringify({ id, result, error: null }))
+  }
+
+  _sendError (id, error) {
+    this._websocket.send(JSON.stringify({ id, result: null, error }))
   }
 }
 

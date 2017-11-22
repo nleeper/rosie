@@ -57,7 +57,7 @@ class Sonos {
 
   getSpeakerByName (name) {
     return new P((resolve, reject) => {
-      let speaker = _.find(this._speakers, x => x.name === name)
+      let speaker = _.find(this._speakers, x => x.name.toLowerCase() === name.toLowerCase())
       if (speaker === undefined) return reject(new Error(`The speaker ${name} could not be found`))
 
       resolve(speaker)
@@ -94,8 +94,12 @@ class Sonos {
       .then(speaker => {
         return this._spotify.searchArtist(artistName)
         .then(data => {
-          let match = data.artists.items[0]
-          return P.promisify(speaker.device.playSpotifyRadio, { context: speaker.device })(match.id, match.name)
+          if (data.total > 0) {
+            let match = data.artists.items[0]
+            return P.promisify(speaker.device.playSpotifyRadio, { context: speaker.device })(match.id, match.name)
+          } else {
+            return P.reject(new Error(`The artist ${artistName} could not be found`))
+          }
         })
       })
   }
