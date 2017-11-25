@@ -2,8 +2,8 @@
 
 const P = require('bluebird')
 const WS = require('ws')
-const Sonos = require('./sonos')
 const Logger = require('./logger')
+const PluginManager = require('../plugins')
 
 class Pipeline {
   constructor () {
@@ -28,27 +28,13 @@ class Pipeline {
     if (parsedMessage.method) {
       Logger.info(`Message received for method ${parsedMessage.method}`)
 
-      switch (parsedMessage.method) {
-        case 'connect':
-          Logger.info('Pipeline connection established')
-          this._connected = true
-          break
-        case 'sonos.speakers':
-          Sonos.getSpeakers()
-            .then(speakers => this._sendResponse(parsedMessage.id, { success: true, speakers }))
-            .catch(err => this._sendError(parsedMessage.id, err.message))
-          break
-        case 'sonos.play_artist':
-          let artist = parsedMessage.params['artist']
-          let speakerName = parsedMessage.params['speaker']
-
-          Sonos.getSpeakerByName(speakerName)
-            .then(speaker => {
-              return Sonos.playArtist(speaker.id, artist)
-                .then(playing => this._sendResponse(parsedMessage.id, { success: playing }))
-            })
-            .catch(err => this._sendError(parsedMessage.id, err.message))
-          break
+      if (parsedMessage.method === 'connect') {
+        Logger.info('Pipeline connection established')
+        this._connected = true
+      } else {
+        PluginManager.handle(parsedMessage.method, parsedMessage.params)
+          .then(response => this._sendResponse(parsedMessage.id, response))
+          .catch(err => this._sendError(parsedMessage.id, err.message))
       }
     }
   }
