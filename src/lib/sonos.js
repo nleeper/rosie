@@ -94,7 +94,7 @@ class Sonos {
       .then(speaker => {
         return this._spotify.searchArtist(artistName)
         .then(data => {
-          if (data.total > 0) {
+          if (data.artists.total > 0) {
             let match = data.artists.items[0]
             return P.promisify(speaker.device.playSpotifyRadio, { context: speaker.device })(match.id, match.name)
           } else {
