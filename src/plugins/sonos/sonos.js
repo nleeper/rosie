@@ -6,7 +6,6 @@ const Uuid = require('uuid4')
 const SonosLib = require('sonos')
 const Spotify = require('./spotify')
 const Logger = require('../../lib/logger')
-const Config = require('../../lib/config')
 
 class Sonos {
   constructor (options) {
