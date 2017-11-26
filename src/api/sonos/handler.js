@@ -1,6 +1,6 @@
 'use strict'
 
-const Sonos = require('../../lib/sonos')
+const Sonos = require('../../plugins/sonos/sonos')
 
 exports.speakers = (request, reply) => {
   Sonos.getSpeakers()

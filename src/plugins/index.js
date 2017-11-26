@@ -11,7 +11,7 @@ class PluginManager {
   }
 
   register () {
-    let configs = Glob.sync('**/*.js', { cwd: __dirname }).map(this._validPlugin).filter(x => x !== undefined)
+    let configs = Glob.sync('**/plugin.js', { cwd: __dirname }).map(this._loadConfig).filter(x => x !== undefined)
     return P.all(configs.map(this._resolvePlugin))
       .then(plugins => plugins.map(this._addPlugin.bind(this)))
   }
@@ -20,7 +20,7 @@ class PluginManager {
     let split = method.split('.', 2)
 
     let plugin = split[0]
-    let action = spit[1]
+    let action = split[1]
 
     // TODO - Check if action is supported by plugin.
     if (this._plugins[plugin]) {
@@ -28,6 +28,10 @@ class PluginManager {
     } else {
       throw new Error(`There is no plugin named ${plugin}`)
     }
+  }
+
+  _loadConfig (file) {
+    return require(`./${file}`)
   }
 
   _addPlugin (plugin) {
@@ -38,13 +42,6 @@ class PluginManager {
     this._plugins[plugin.name] = plugin
 
     return plugin
-  }
-
-  _validPlugin (file) {
-    if (file !== 'index.js') {
-      let plugin = require(`./${file}`)
-      return plugin
-    }
   }
 
   _resolvePlugin (config) {
