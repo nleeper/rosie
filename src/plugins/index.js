@@ -19,14 +19,18 @@ class PluginManager {
   handle (method, params) {
     let split = method.split('.', 2)
 
-    let plugin = split[0]
+    let name = split[0]
     let action = split[1]
 
-    // TODO - Check if action is supported by plugin.
-    if (this._plugins[plugin]) {
-      return this._plugins[plugin].handle(action, params)
+    let plugin = this._plugins[name]
+    if (plugin) {
+      if (plugin.supportedActions[action]) {
+        return plugin.handle(action, params)
+      } else {
+        throw new Error(`Plugin ${name} does not support action ${action}`)
+      }
     } else {
-      throw new Error(`There is no plugin named ${plugin}`)
+      throw new Error(`There is no plugin named ${name}`)
     }
   }
 
