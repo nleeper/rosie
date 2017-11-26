@@ -5,6 +5,7 @@ const P = require('bluebird')
 const Uuid = require('uuid4')
 const SonosLib = require('sonos')
 const Spotify = require('./spotify')
+const Errors = require('../../errors')
 const Logger = require('../../lib/logger')
 
 class Sonos {
@@ -60,7 +61,7 @@ class Sonos {
       if (speaker) {
         resolve(speaker)
       } else {
-        reject(new Error(`The speaker ${id} could not be found`))
+        reject(new Errors.NotFoundError(`The speaker ${id} could not be found`))
       }
     })
   }
@@ -68,7 +69,7 @@ class Sonos {
   getSpeakerByName (name) {
     return new P((resolve, reject) => {
       let speaker = _.find(this._speakers, x => x.name.toLowerCase() === name.toLowerCase())
-      if (speaker === undefined) return reject(new Error(`The speaker ${name} could not be found`))
+      if (speaker === undefined) return reject(new Errors.NotFoundError(`The speaker ${name} could not be found`))
 
       resolve(speaker)
     })
@@ -108,7 +109,7 @@ class Sonos {
             let match = data.artists.items[0]
             return P.promisify(speaker.device.playSpotifyRadio, { context: speaker.device })(match.id, match.name)
           } else {
-            return P.reject(new Error(`The artist ${artistName} could not be found`))
+            return P.reject(new Errors.NotFoundError(`The artist ${artistName} could not be found`))
           }
         })
       })
