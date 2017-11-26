@@ -24,7 +24,7 @@ class PluginManager {
 
     let plugin = this._plugins[name]
     if (plugin) {
-      if (plugin.supportedActions[action]) {
+      if (plugin.supportedActions.indexOf(action) > -1) {
         return plugin.handle(action, params)
       } else {
         throw new Error(`Plugin ${name} does not support action ${action}`)

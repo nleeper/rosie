@@ -14,9 +14,11 @@ exports.play = (request, reply) => {
   if (artist) {
     PluginManager.handle('sonos.play_artist', { artist, speakerId })
       .then(reply)
+      .catch(reply)
   } else {
     PluginManager.handle('sonos.play', { speakerId })
       .then(reply)
+      .catch(reply)
   }
 }
 
@@ -24,10 +26,12 @@ exports.pause = (request, reply) => {
   let speakerId = request.params.id
   PluginManager.handle('sonos.pause', { speakerId })
     .then(reply)
+    .catch(reply)
 }
 
 exports.stop = (request, reply) => {
   let speakerId = request.params.id
   PluginManager.handle('sonos.stop', { speakerId })
     .then(reply)
+    .catch(reply)
 }

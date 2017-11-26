@@ -10,6 +10,7 @@ module.exports = {
   ],
   registrations: [
     { plugin: 'blipp' },
+    { plugin: './api/errors' },
     { plugin: './api' }
   ]
 }
