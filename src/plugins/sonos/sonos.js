@@ -5,20 +5,20 @@ const P = require('bluebird')
 const Uuid = require('uuid4')
 const SonosLib = require('sonos')
 const Spotify = require('./spotify')
-const Logger = require('./logger')
-const Config = require('./config')
+const Logger = require('../../lib/logger')
+const Config = require('../../lib/config')
 
 class Sonos {
-  constructor () {
+  constructor (options) {
     this._initialized = false
     this._speakers = {}
-    this._spotify = Spotify.create(Config.SPOTIFY)
+
+    this._timeout = options.TIMEOUT || 2500
+    this._excludedSpeakers = options.EXCLUDED_SPEAKERS || ['BRIDGE']
+    this._spotify = Spotify.create(options.SPOTIFY)
   }
 
-  initialize (options) {
-    let timeout = options.TIMEOUT || 2500
-    let excludedSpeakers = options.EXCLUDED_SPEAKERS || [ 'BRIDGE' ]
-
+  initialize () {
     return new P((resolve, reject) => {
       let search = SonosLib.search()
       search.on('DeviceAvailable', (device, model) => {
@@ -35,7 +35,7 @@ class Sonos {
             }
 
             let name = attrs.CurrentZoneName
-            if (!excludedSpeakers.includes(name.toUpperCase())) {
+            if (!this._excludedSpeakers.includes(name.toUpperCase())) {
               let id = desc.UDN.split(':')[1]
               this._speakers[id] = { id, device, model, name }
             }
@@ -47,7 +47,7 @@ class Sonos {
       setTimeout(function () {
         resolve()
         Logger.info(`Sonos system discovered: ${Object.keys(self._speakers).length} speakers found`)
-      }, timeout)
+      }, this._timeout)
     })
   }
 
@@ -116,4 +116,6 @@ class Sonos {
   }
 }
 
-module.exports = new Sonos()
+exports.create = (options) => {
+  return new Sonos(options)
+}

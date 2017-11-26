@@ -1,6 +1,6 @@
 'use strict'
 
-const Sonos = require('../lib/sonos')
+const Sonos = require('./sonos')
 
 class SonosPlugin {
   constructor () {
@@ -10,20 +10,21 @@ class SonosPlugin {
   }
 
   initialize (config) {
-    return Sonos.initialize(config.SONOS)
+    this._sonos = Sonos.create(config)
+    return this._sonos.initialize()
   }
 
   handle (action, params) {
     if (action === 'speakers') {
-      return Sonos.getSpeakers()
+      return this._sonos.getSpeakers()
         .then(speakers => ({ success: true, speakers }))
     } else if (action === 'play_artist') {
       let artist = params['artist']
       let speakerName = params['speaker']
 
-      return Sonos.getSpeakerByName(speakerName)
+      return this._sonos.getSpeakerByName(speakerName)
         .then(speaker => {
-          return Sonos.playArtist(speaker.id, artist)
+          return this._sonos.playArtist(speaker.id, artist)
             .then(playing => ({ success: playing }))
         })
     }

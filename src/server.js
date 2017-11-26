@@ -4,7 +4,6 @@ const Glue = require('glue')
 const Manifest = require('./manifest')
 const Config = require('./lib/config')
 const Logger = require('./lib/logger')
-const Sonos = require('./lib/sonos')
 const Pipeline = require('./lib/pipeline')
 const PluginManager = require('./plugins')
 
