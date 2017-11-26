@@ -54,6 +54,17 @@ class Sonos {
     return P.resolve(this._speakers)
   }
 
+  getSpeakerById (id) {
+    return new P((resolve, reject) => {
+      let speaker = this._speakers[id]
+      if (speaker) {
+        resolve(speaker)
+      } else {
+        reject(new Error(`The speaker ${id} could not be found`))
+      }
+    })
+  }
+
   getSpeakerByName (name) {
     return new P((resolve, reject) => {
       let speaker = _.find(this._speakers, x => x.name.toLowerCase() === name.toLowerCase())
@@ -64,14 +75,14 @@ class Sonos {
   }
 
   stop (speakerId) {
-    return this._getSpeakerById(speakerId)
+    return this.getSpeakerById(speakerId)
       .then(speaker => {
         return P.promisify(speaker.device.stop, { context: speaker.device })()
       })
   }
 
   pause (speakerId) {
-    return this._getSpeakerById(speakerId)
+    return this.getSpeakerById(speakerId)
       .then(speaker => {
         return P.promisify(speaker.device.pause, { context: speaker.device })()
       })
@@ -82,14 +93,14 @@ class Sonos {
   }
 
   playUri (speakerId, uri) {
-    return this._getSpeakerById(speakerId)
+    return this.getSpeakerById(speakerId)
       .then(speaker => {
         return P.promisify(speaker.device.play, { context: speaker.device })(uri)
       })
   }
 
   playArtist (speakerId, artistName) {
-    return this._getSpeakerById(speakerId)
+    return this.getSpeakerById(speakerId)
       .then(speaker => {
         return this._spotify.searchArtist(artistName)
         .then(data => {
@@ -101,17 +112,6 @@ class Sonos {
           }
         })
       })
-  }
-
-  _getSpeakerById (speakerId) {
-    return new P((resolve, reject) => {
-      let speaker = this._speakers[speakerId]
-      if (speaker) {
-        resolve(speaker)
-      } else {
-        reject(new Error(`The speaker ${speakerId} could not be found`))
-      }
-    })
   }
 }
 

@@ -1,10 +1,10 @@
 'use strict'
 
-const Sonos = require('../../plugins/sonos/sonos')
+const PluginManager = require('../../plugins')
 
 exports.speakers = (request, reply) => {
-  Sonos.getSpeakers()
-    .then(speakers => reply(speakers))
+  PluginManager.handle('sonos.speakers', {})
+    .then(reply)
 }
 
 exports.play = (request, reply) => {
@@ -12,22 +12,22 @@ exports.play = (request, reply) => {
   let artist = request.payload ? request.payload.artist : undefined
 
   if (artist) {
-    Sonos.playArtist(speakerId, artist)
-      .then(success => reply({ success }))
+    PluginManager.handle('sonos.play_artist', { artist, speakerId })
+      .then(reply)
   } else {
-    Sonos.play(speakerId)
-      .then(success => reply({ success }))
+    PluginManager.handle('sonos.play', { speakerId })
+      .then(reply)
   }
 }
 
 exports.pause = (request, reply) => {
   let speakerId = request.params.id
-  Sonos.pause(speakerId)
-    .then(success => reply({ success }))
+  PluginManager.handle('sonos.pause', { speakerId })
+    .then(reply)
 }
 
 exports.stop = (request, reply) => {
   let speakerId = request.params.id
-  Sonos.stop(speakerId)
-    .then(success => reply({ success }))
+  PluginManager.handle('sonos.stop', { speakerId })
+    .then(reply)
 }
