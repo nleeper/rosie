@@ -88,4 +88,6 @@ class PluginManager {
   }
 }
 
-module.exports = new PluginManager()
+exports.create = () => {
+  return new PluginManager()
+}
