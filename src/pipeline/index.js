@@ -11,8 +11,9 @@ class PipelineManager {
     const pingInterval = settings.PING_INTERVAL || 30000
     const connectTimeout = settings.CONNECT_TIMEOUT || 60000
     const reconnectInterval = settings.RECONNECT_INTERVAL || 5000
+    const registerTimeout = settings.REGISTER_TIMEOUT || 10000
 
-    this._connection = PipelineConnection.create({ url, pingInterval, connectTimeout, reconnectInterval })
+    this._connection = PipelineConnection.create({ url, pingInterval, connectTimeout, reconnectInterval, registerTimeout })
     this._connection.on('message', this._onPipelineMessage.bind(this))
     this._connection.on('connectionClose', this._onPipelineClose.bind(this))
   }
