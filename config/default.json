@@ -8,7 +8,8 @@
     "URL": "ws://localhost:8888/ws/pipeline",
     "PING_INTERVAL": 30000,
     "CONNECT_TIMEOUT": 60000,
-    "RECONNECT_INTERVAL": 5000
+    "RECONNECT_INTERVAL": 5000,
+    "REGISTER_TIMEOUT": 10000
   },
   "SONOS": {
     "TIMEOUT": 3000,

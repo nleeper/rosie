@@ -15,6 +15,9 @@ class PipelineConnection extends EventEmitter {
       connectTimeout: settings.connectTimeout,
       reconnectInterval: settings.reconnectInterval
     })
+
+    this._registerTimeout = settings.registerTimeout
+    this._registerTimerId = null
   }
 
   connect () {
@@ -31,17 +34,32 @@ class PipelineConnection extends EventEmitter {
         reject(err)
       }
 
+      const registeredNotificationListener = (data, flags) => {
+        let parsedMessage = JSON.parse(data)
+        if (this._isNotification(parsedMessage, 'registered')) {
+          Logger.info('Pipeline registration complete')
+
+          this._clearTimers()
+
+          this._ws.on('close', this._onWebSocketClose.bind(this))
+          this._ws.on('error', this._onWebSocketError.bind(this))
+          this._ws.on('message', this._onWebSocketMessage.bind(this))
+
+          resolve(this)
+        }
+      }
+
       this._ws.once('error', connectErrorListener)
 
       this._ws.once('open', () => {
         // Remove listener only used for connect problems.
         this._ws.removeListener('error', connectErrorListener)
 
-        this._ws.on('close', this._onWebSocketClose.bind(this))
-        this._ws.on('error', this._onWebSocketError.bind(this))
-        this._ws.on('message', this._onWebSocketMessage.bind(this))
+        // Add listener waiting for registered notification.
+        this._ws.once('message', registeredNotificationListener)
 
-        resolve(this)
+        // Setup a timeout for waiting for registered notification.
+        this._registerTimerId = setTimeout(this._onRegisterTimedOut.bind(this), this._registerTimeout)
       })
 
       this._ws.connect()
@@ -60,17 +78,31 @@ class PipelineConnection extends EventEmitter {
     this._ws.close()
   }
 
+  _onRegisterTimedOut () {
+    Logger.error('Pipeline registration failed, closing connection')
+    this._cleanup()
+    this.emit('connectionClose', false)
+  }
+
+  _clearTimers () {
+    clearTimeout(this._registerTimerId)
+    this._registerTimerId = null
+  }
+
+  _cleanup () {
+    this._clearTimers()
+    this.close()
+  }
+
+  _isNotification (message, notificationType) {
+    return message.id === null && message.method === notificationType
+  }
+
   _onWebSocketMessage (data, flags) {
     let parsedMessage = JSON.parse(data)
     if (parsedMessage.method) {
-      Logger.info(`Message received for method ${parsedMessage.method}`)
-
-      if (parsedMessage.method === 'connect') {
-        Logger.info('Pipeline connection established')
-        this._connected = true
-      } else {
-        this.emit('message', parsedMessage)
-      }
+      Logger.info(`Pipeline message received for method ${parsedMessage.method}`)
+      this.emit('message', parsedMessage)
     }
   }
 
