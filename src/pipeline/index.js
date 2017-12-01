@@ -1,10 +1,13 @@
 'use strict'
 
+const EventEmitter = require('events')
 const Logger = require('../lib/logger')
 const PipelineConnection = require('./connection')
 
-class PipelineManager {
+class PipelineManager extends EventEmitter {
   constructor (pluginManager, settings) {
+    super()
+
     this._pluginManager = pluginManager
 
     const url = settings.URL || 'ws://localhost:8888/ws/pipeline'
@@ -23,7 +26,8 @@ class PipelineManager {
   }
 
   stop () {
-    Logger.info('Stopping server')
+    this._connection.close()
+    this.emit('close')
   }
 
   _reconnectToPipeline () {

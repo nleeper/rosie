@@ -10,7 +10,12 @@ const PipelineManager = require('./pipeline')
 const composeOptions = { relativeTo: __dirname }
 
 let pluginManager = PluginManager.create()
+
 let pipelineManager = PipelineManager.create(pluginManager, Config.PIPELINE)
+pipelineManager.on('close', () => {
+  Logger.info('Pipeline connection has closed, stopping server')
+  process.exit(0)
+})
 
 module.exports = Glue.compose(Manifest, composeOptions)
   .then(server => {
@@ -27,5 +32,5 @@ module.exports = Glue.compose(Manifest, composeOptions)
   })
   .catch(err => {
     Logger.error(err)
-    throw err
+    process.exit(1)
   })
