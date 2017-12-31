@@ -6,7 +6,7 @@ class SonosPlugin {
   constructor () {
     this.name = 'sonos'
     this.description = 'Plugin to control Sonos players'
-    this.supportedActions = ['speakers', 'play', 'play_artist', 'pause', 'stop']
+    this.supportedActions = ['speakers', 'play', 'pause', 'stop']
   }
 
   initialize (config) {
@@ -21,9 +21,6 @@ class SonosPlugin {
         break
       case 'play':
         return this._playSpeaker(params)
-        break
-      case 'play_artist':
-        return this._playArtistOnSpeaker(params)
         break
       case 'pause':
         return this._pauseSpeaker(params)
@@ -40,39 +37,18 @@ class SonosPlugin {
   }
 
   _playSpeaker (params) {
-    return this._getSpeaker(params['speakerId'], params['speaker'])
-      .then(speaker => {
-        return this._sonos.play(speaker.id)
-          .then(playing => ({ success: playing }))
-      })
-  }
-
-  _playArtistOnSpeaker (params) {
-    return this._getSpeaker(params['speakerId'], params['speaker'])
-      .then(speaker => {
-        return this._sonos.playArtist(speaker.id, params['artist'])
-          .then(playing => ({ success: playing }))
-      })
+    return this._sonos.play(params['speaker'])
+      .then(success => ({ success }))
   }
 
   _pauseSpeaker (params) {
-    return this._getSpeaker(params['speakerId'], params['speaker'])
-      .then(speaker => {
-        return this._sonos.pause(speaker.id)
-          .then(paused => ({ success: paused }))
-      })
+    return this._sonos.pause(params['speaker'])
+      .then(success => ({ success }))
   }
 
   _stopSpeaker (params) {
-    return this._getSpeaker(params['speakerId'], params['speaker'])
-      .then(speaker => {
-        return this._sonos.stop(speaker.id)
-          .then(stopped => ({ success: stopped }))
-      })
-  }
-
-  _getSpeaker (speakerId, speakerName) {
-    return speakerId ? this._sonos.getSpeakerById(speakerId) : this._sonos.getSpeakerByName(speakerName)
+    return this._sonos.stop(params['speaker'])
+      .then(success => ({ success }))
   }
 }
 
