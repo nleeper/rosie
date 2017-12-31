@@ -3,116 +3,76 @@
 const _ = require('underscore')
 const P = require('bluebird')
 const Uuid = require('uuid4')
-const SonosLib = require('sonos')
-const Spotify = require('./spotify')
+const SonosDiscovery = require('sonos-discovery')
 const Errors = require('../../errors')
 const Logger = require('../../lib/logger')
 
 class Sonos {
   constructor (options) {
     this._initialized = false
-    this._speakers = {}
 
-    this._timeout = options.TIMEOUT || 2500
-    this._excludedSpeakers = options.EXCLUDED_SPEAKERS || ['BRIDGE']
-    this._spotify = Spotify.create(options.SPOTIFY)
+    this._timeout = options.SONOS.TIMEOUT || 2500
+
+    this._discovery = new SonosDiscovery()
   }
 
   initialize () {
     return new P((resolve, reject) => {
-      let search = SonosLib.search()
-      search.on('DeviceAvailable', (device, model) => {
-        device.getZoneAttrs((err, attrs) => {
-          if (err) {
-            reject(err)
-            return
-          }
-
-          device.deviceDescription((err, desc) => {
-            if (err) {
-              reject(err)
-              return
-            }
-
-            let name = attrs.CurrentZoneName
-            if (!this._excludedSpeakers.includes(name.toUpperCase())) {
-              let id = desc.UDN.split(':')[1]
-              this._speakers[id] = { id, device, model, name }
-            }
-          })
-        })
-      })
-
-      let self = this
       setTimeout(function () {
+        if (this._discovery.players.length === 0) {
+          return reject('No Sonos speakers were discovered, try increasing timeout')
+        }
+
         resolve()
-        Logger.info(`Sonos system discovered: ${Object.keys(self._speakers).length} speakers found`)
-      }, this._timeout)
+        Logger.info(`Sonos system discovered: ${Object.keys(this._discovery.players).length} speakers found`)
+      }.bind(this), this._timeout)
     })
   }
 
   getSpeakers () {
-    return P.resolve(this._speakers)
+    return P.resolve(this._discovery.players.map(this._simplifyPlayer))
   }
 
-  getSpeakerById (id) {
+  stop (name) {
+    return this._getPlayer(name)
+      .then(player => player.coordinator.stop())
+      .then(this._validateResponse)
+  }
+
+  pause (name) {
+    return this._getPlayer(name)
+      .then(player => player.coordinator.pause())
+      .then(this._validateResponse)
+  }
+
+  play (name) {
+    return this._getPlayer(name)
+      .then(player => player.coordinator.play())
+      .then(this._validateResponse)
+  }
+
+  _getPlayer (name) {
     return new P((resolve, reject) => {
-      let speaker = this._speakers[id]
-      if (speaker) {
-        resolve(speaker)
-      } else {
-        reject(new Errors.NotFoundError(`The speaker ${id} could not be found`))
-      }
+      let player = this._discovery.getPlayer(name)
+      if (player === undefined) return reject(new Errors.NotFoundError(`The speaker ${name} could not be found`))
+
+      resolve(player)
     })
   }
 
-  getSpeakerByName (name) {
-    return new P((resolve, reject) => {
-      let speaker = _.find(this._speakers, x => x.name.toLowerCase() === name.toLowerCase())
-      if (speaker === undefined) return reject(new Errors.NotFoundError(`The speaker ${name} could not be found`))
-
-      resolve(speaker)
-    })
+  _simplifyPlayer (player) {
+    return {
+      id: player.uuid,
+      state: player.state,
+      playMode: player.currentPlayMode,
+      name: player.roomName,
+      coordinator: player.coordinator.uuid,
+      groupState: player.groupState
+    }
   }
 
-  stop (speakerId) {
-    return this.getSpeakerById(speakerId)
-      .then(speaker => {
-        return P.promisify(speaker.device.stop, { context: speaker.device })()
-      })
-  }
-
-  pause (speakerId) {
-    return this.getSpeakerById(speakerId)
-      .then(speaker => {
-        return P.promisify(speaker.device.pause, { context: speaker.device })()
-      })
-  }
-
-  play (speakerId) {
-    return this.playUri(speakerId, undefined)
-  }
-
-  playUri (speakerId, uri) {
-    return this.getSpeakerById(speakerId)
-      .then(speaker => {
-        return P.promisify(speaker.device.play, { context: speaker.device })(uri)
-      })
-  }
-
-  playArtist (speakerId, artistName) {
-    return this.getSpeakerById(speakerId)
-      .then(speaker => {
-        return this._spotify.searchArtist(artistName)
-        .then(data => {
-          if (data.artists.total > 0) {
-            let match = data.artists.items[0]
-            return P.promisify(speaker.device.playSpotifyRadio, { context: speaker.device })(match.id, match.name)
-          } else {
-            return P.reject(new Errors.NotFoundError(`The artist ${artistName} could not be found`))
-          }
-        })
-      })
+  _validateResponse (response) {
+    return P.resolve(response.statusCode === 200 && response.statusMessage === 'OK')
   }
 }
 

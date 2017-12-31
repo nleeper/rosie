@@ -6,32 +6,25 @@ exports.speakers = (req, reply) => {
 }
 
 exports.play = (req, reply) => {
-  let speakerId = req.params.id
-  let artist = req.payload ? req.payload.artist : undefined
+  let speaker = req.params.name
 
-  if (artist) {
-    req.pluginManager().handle('sonos.play_artist', { artist, speakerId })
-      .then(reply)
-      .catch(reply)
-  } else {
-    req.pluginManager().handle('sonos.play', { speakerId })
-      .then(reply)
-      .catch(reply)
-  }
+  req.pluginManager().handle('sonos.play', { speaker })
+    .then(reply)
+    .catch(reply)
 }
 
 exports.pause = (req, reply) => {
-  let speakerId = req.params.id
+  let speaker = req.params.name
 
-  req.pluginManager().handle('sonos.pause', { speakerId })
+  req.pluginManager().handle('sonos.pause', { speaker })
     .then(reply)
     .catch(reply)
 }
 
 exports.stop = (req, reply) => {
-  let speakerId = req.params.id
+  let speaker = req.params.name
 
-  req.pluginManager().handle('sonos.stop', { speakerId })
+  req.pluginManager().handle('sonos.stop', { speaker })
     .then(reply)
     .catch(reply)
 }

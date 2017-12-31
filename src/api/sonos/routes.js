@@ -17,7 +17,7 @@ module.exports = [
   },
   {
     method: 'POST',
-    path: '/speakers/{id}/play',
+    path: '/speakers/{name}/play',
     handler: Handler.play,
     config: {
       tags: tags,
@@ -27,7 +27,7 @@ module.exports = [
   },
   {
     method: 'POST',
-    path: '/speakers/{id}/stop',
+    path: '/speakers/{name}/stop',
     handler: Handler.stop,
     config: {
       tags: tags,
@@ -37,7 +37,7 @@ module.exports = [
   },
   {
     method: 'POST',
-    path: '/speakers/{id}/pause',
+    path: '/speakers/{name}/pause',
     handler: Handler.pause,
     config: {
       tags: tags,
