@@ -21,10 +21,11 @@ exports.pause = (req, reply) => {
     .catch(reply)
 }
 
-exports.stop = (req, reply) => {
+exports.playSpotify = (req, reply) => {
   let speaker = req.params.name
+  let uri = req.params.uri
 
-  req.pluginManager().handle('sonos.stop', { speaker })
+  req.pluginManager().handle('sonos.play_spotify', { speaker, uri })
     .then(reply)
     .catch(reply)
 }

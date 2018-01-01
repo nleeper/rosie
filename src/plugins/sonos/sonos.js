@@ -11,7 +11,7 @@ class Sonos {
   constructor (options) {
     this._initialized = false
 
-    this._timeout = options.SONOS.TIMEOUT || 2500
+    this._timeout = options.TIMEOUT || 2500
 
     this._discovery = new SonosDiscovery()
   }
@@ -33,22 +33,47 @@ class Sonos {
     return P.resolve(this._discovery.players.map(this._simplifyPlayer))
   }
 
-  stop (name) {
-    return this._getPlayer(name)
-      .then(player => player.coordinator.stop())
-      .then(this._validateResponse)
-  }
-
   pause (name) {
     return this._getPlayer(name)
       .then(player => player.coordinator.pause())
-      .then(this._validateResponse)
   }
 
   play (name) {
     return this._getPlayer(name)
       .then(player => player.coordinator.play())
-      .then(this._validateResponse)
+  }
+
+  playSpotify (name, spotifyUri) {
+    return this._getPlayer(name)
+      .then(player => {
+        if (!spotifyUri.startsWith('spotify:')) return false
+
+        const encodedSpotifyUri = encodeURIComponent(spotifyUri)
+        const sid = player.system.getServiceId('Spotify')
+
+        // Check if current uri is either a track or a playlist/album
+        let uri = ''
+        if (spotifyUri.startsWith('spotify:track:')) {
+          uri = `x-sonos-spotify:${encodedSpotifyUri}?sid=${sid}&flags=32&sn=1`
+        } else {
+          uri = `x-rincon-cpcontainer:0006206c${encodedSpotifyUri}`
+        }
+
+        let metadata = this._getSpotifyMetadata(encodedSpotifyUri, player.system.getServiceType('Spotify'))
+
+        let nextTrackNo = player.coordinator.state.trackNo + 1
+
+        let playPromise = P.resolve()
+        if (player.coordinator.avTransportUri.startsWith('x-rincon-queue') === false) {
+          playPromise = playPromise.then(() => player.coordinator.setAVTransport(`x-rincon-queue:${player.coordinator.uuid}#0`))
+        }
+
+        return playPromise.then(() => {
+          return player.coordinator.addURIToQueue(uri, metadata, true, nextTrackNo)
+            .then(addToQueueStatus => player.coordinator.trackSeek(addToQueueStatus.firsttracknumberenqueued))
+            .then(() => player.coordinator.play())
+        })
+      })
   }
 
   _getPlayer (name) {
@@ -71,8 +96,11 @@ class Sonos {
     }
   }
 
-  _validateResponse (response) {
-    return P.resolve(response.statusCode === 200 && response.statusMessage === 'OK')
+  _getSpotifyMetadata (uri, serviceType) {
+    return `<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"
+          xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+          <item id="00030020${uri}" restricted="true"><upnp:class>object.item.audioItem.musicTrack</upnp:class>
+          <desc id="cdudn" nameSpace="urn:schemas-rinconnetworks-com:metadata-1-0/">SA_RINCON${serviceType}_X_#Svc${serviceType}-0-Token</desc></item></DIDL-Lite>`
   }
 }
 
