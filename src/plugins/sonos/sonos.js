@@ -33,6 +33,11 @@ class Sonos {
     return P.resolve(this._discovery.players.map(this._simplifyPlayer))
   }
 
+  next (name) {
+    return this._getPlayer(name)
+      .then(player => player.coordinator.nextTrack())
+  }
+
   pause (name) {
     return this._getPlayer(name)
       .then(player => player.coordinator.pause())

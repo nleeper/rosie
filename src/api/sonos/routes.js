@@ -37,6 +37,16 @@ module.exports = [
   },
   {
     method: 'POST',
+    path: '/speakers/{name}/next',
+    handler: Handler.next,
+    config: {
+      tags,
+      description: 'Next track on Sonos speaker',
+      id: 'sonos_next_track'
+    }
+  },
+  {
+    method: 'POST',
     path: '/speakers/{name}/spotify/{uri}',
     handler: Handler.playSpotify,
     config: {

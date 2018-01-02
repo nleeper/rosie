@@ -29,3 +29,11 @@ exports.playSpotify = (req, reply) => {
     .then(reply)
     .catch(reply)
 }
+
+exports.next = (req, reply) => {
+  let speaker = req.params.name
+
+  req.pluginManager().handle('sonos.next', { speaker })
+    .then(reply)
+    .catch(reply)
+}

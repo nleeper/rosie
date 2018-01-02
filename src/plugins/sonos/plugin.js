@@ -7,7 +7,18 @@ class SonosPlugin {
   constructor () {
     this.name = 'sonos'
     this.description = 'Plugin to control Sonos players'
-    this.supportedActions = ['speakers', 'play', 'pause', 'play_spotify']
+
+    this._supportedActionMap = {
+      'speakers': this._getAllSpeakers.bind(this),
+      'play': this._playSpeaker.bind(this),
+      'pause': this._pauseSpeaker.bind(this),
+      'play_spotify': this._playSpotify.bind(this),
+      'next': this._nextTrack.bind(this)
+    }
+  }
+
+  actionSupported (action) {
+    return action in this._supportedActionMap
   }
 
   initialize (config) {
@@ -16,23 +27,20 @@ class SonosPlugin {
   }
 
   handle (action, params) {
-    switch (action) {
-      case 'speakers':
-        return this._getAllSpeakers()
-        break
-      case 'play':
-        return this._playSpeaker(params)
-        break
-      case 'pause':
-        return this._pauseSpeaker(params)
-        break
-      case 'play_spotify':
-        return this._playSpotify(params)
-        break
+    if (this.actionSupported(action)) {
+      return this._supportedActionMap[action](params)
+    } else {
+      throw new Error(`Action ${action} is not supported by ${this.name} plugin`)
     }
   }
 
-  _getAllSpeakers () {
+  _nextTrack (params) {
+    return this._sonos.next(params['speaker'])
+      .then(this._validateResponse)
+      .catch(this._handleError)
+  }
+
+  _getAllSpeakers (params) {
     return this._sonos.getSpeakers()
       .then(speakers => ({ success: true, speakers, error: null }))
   }

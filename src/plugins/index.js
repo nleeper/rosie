@@ -24,7 +24,7 @@ class PluginManager {
 
     let plugin = this._plugins[name]
     if (plugin) {
-      if (plugin.supportedActions.indexOf(action) > -1) {
+      if (plugin.actionSupported(action)) {
         return plugin.handle(action, params)
       } else {
         throw new Error(`Plugin ${name} does not support action ${action}`)
@@ -67,20 +67,16 @@ class PluginManager {
           throw new Error('Description must be a string')
         }
 
-        if (!plugin.supportedActions) {
-          throw new Error('Plugin must have supported actions')
-        }
-
-        if (!TypeCheck.isArray(plugin.supportedActions)) {
-          throw new Error('Supported actions must be an array')
-        }
-
         if (!plugin.initialize) {
           throw new Error('Plugin does not implement required function \'initialize\'')
         }
 
         if (!plugin.handle) {
           throw new Error('Plugin does not implement required function \'handle\'')
+        }
+
+        if (!plugin.actionSupported) {
+          throw new Error('Plugin does not implement required function \'actionSupported\'')
         }
 
         return plugin.initialize(Config).then(() => plugin)
