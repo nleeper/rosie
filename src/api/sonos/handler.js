@@ -5,6 +5,23 @@ exports.speakers = (req, reply) => {
     .then(reply)
 }
 
+exports.speakerByName = (req, reply) => {
+  let speaker = req.params.name
+
+  req.pluginManager().handle('sonos.speaker', { speaker })
+    .then(reply)
+    .catch(reply)
+}
+
+exports.setVolume = (req, reply) => {
+  let speaker = req.params.name
+  let level = req.params.level
+
+  req.pluginManager().handle('sonos.volume', { speaker, level })
+    .then(reply)
+    .catch(reply)
+}
+
 exports.play = (req, reply) => {
   let speaker = req.params.name
 
