@@ -10,10 +10,12 @@ class SonosPlugin {
 
     this._supportedActionMap = {
       'speakers': this._getAllSpeakers.bind(this),
+      'speaker': this._getSpeaker.bind(this),
       'play': this._playSpeaker.bind(this),
       'pause': this._pauseSpeaker.bind(this),
       'play_spotify': this._playSpotify.bind(this),
-      'next': this._nextTrack.bind(this)
+      'next': this._nextTrack.bind(this),
+      'volume': this._setVolume.bind(this)
     }
   }
 
@@ -34,6 +36,12 @@ class SonosPlugin {
     }
   }
 
+  _setVolume (params) {
+    return this._sonos.setVolume(params['speaker'], params['level'])
+      .then(this._validateResponse)
+      .catch(this._handleError)
+  }
+
   _nextTrack (params) {
     return this._sonos.next(params['speaker'])
       .then(this._validateResponse)
@@ -43,6 +51,13 @@ class SonosPlugin {
   _getAllSpeakers (params) {
     return this._sonos.getSpeakers()
       .then(speakers => ({ success: true, speakers, error: null }))
+  }
+
+  _getSpeaker (params) {
+    let speaker = params['speaker']
+    return this._sonos.getSpeakerByName(speaker)
+      .then(speaker => ({ success: true, speaker, error: null }))
+      .catch(this._handleError)
   }
 
   _playSpeaker (params) {

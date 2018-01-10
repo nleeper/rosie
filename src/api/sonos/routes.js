@@ -16,6 +16,16 @@ module.exports = [
     }
   },
   {
+    method: 'GET',
+    path: '/speakers/{name}',
+    handler: Handler.speakerByName,
+    config: {
+      tags,
+      description: 'Get speaker details by name',
+      id: 'sonos_speaker_by_name'
+    }
+  },
+  {
     method: 'POST',
     path: '/speakers/{name}/play',
     handler: Handler.play,
@@ -53,6 +63,16 @@ module.exports = [
       tags,
       description: 'Play Spotify URI on Sonos speaker',
       id: 'sonos_play_spotify'
+    }
+  },
+  {
+    method: 'POST',
+    path: '/speakers/{name}/volume/{level}',
+    handler: Handler.setVolume,
+    config: {
+      tags,
+      description: 'Set volume on Sonos speaker',
+      id: 'sonos_set_volume'
     }
   }
 ]
